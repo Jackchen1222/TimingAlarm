@@ -20,14 +20,14 @@ public class AlarmReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if(action.equals(Utils.REMINDERS)){
             Bundle bundle = intent.getBundleExtra(Utils.BundleExtraFlag);
-            String common = bundle.getString("content");
-            Log.e(TAG, "common=" + common );
-            Toast.makeText(context, "" + common , Toast.LENGTH_LONG).show();
+            String voiceContent = bundle.getString(Utils.ExcelOnceCellType.VC.contentStr);
+            Log.e(TAG, "contentStr=" + voiceContent );
+            Toast.makeText(context, "" + voiceContent , Toast.LENGTH_LONG).show();
             if(BellControl.getInstance().isPlaying()){
                 BellControl.getInstance().stopRing();
             }
             BellControl.getInstance().defaultAlarmMediaPlayer();
-            TimingAlarmActivity.mSpeakerServiceBinder.speek(common);
+            TimingAlarmActivity.mSpeakerServiceBinder.speek(voiceContent);
         }
     }
 
