@@ -10,5 +10,10 @@
     android:text="启动系统闹铃"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"/>
+  <Button
+    android:id="@+id/deleteAlarm"
+    android:text="删除闹铃"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"/>
 
 </LinearLayout>

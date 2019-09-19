@@ -10,6 +10,7 @@ import android.os.Message;
 import android.util.Log;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.TtsMode;
+import com.higgs.system.tts.BaiduTtsListener.TtsListener;
 
 public class SpeakerService extends Service {
     private static final String TAG = "SpeakerService";
@@ -21,12 +22,12 @@ public class SpeakerService extends Service {
     private SpeechSynthesizer mSpeechSynthesizer;
     private TtsMode mTtsMode = TtsMode.MIX;
     private OperationHandler mOperationHandler;
+    private TtsListener mTtsListener = null;
 
     @Override
     public void onCreate() {
         super.onCreate();
         initValue();
-        baiduTtsInit();
     }
 
     private void initValue(){
@@ -76,6 +77,11 @@ public class SpeakerService extends Service {
     }
 
     public class SpeakerServiceBinder extends Binder{
+        public void initListener(TtsListener tl){
+            mTtsListener = tl;
+            baiduTtsInit();
+        }
+
         public void speek(String content){
             Message msg = new Message();
             msg.what = OperationType.SPEAK.ordinal();
@@ -117,7 +123,7 @@ public class SpeakerService extends Service {
         mSpeechSynthesizer.setContext(this);
 
         // 2. 设置listener
-        mSpeechSynthesizer.setSpeechSynthesizerListener(null);
+        mSpeechSynthesizer.setSpeechSynthesizerListener( new BaiduTtsListener(mTtsListener) );
 
         // 3. 设置appId，appKey.secretKey
         int result = mSpeechSynthesizer.setAppId(appId);
@@ -162,7 +168,7 @@ public class SpeakerService extends Service {
 
         // 6. 初始化
         result = mSpeechSynthesizer.initTts(mTtsMode);
-        checkResult(result, "initTts");
+//        checkResult(result, "initTts");
 
     }
 

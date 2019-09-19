@@ -2,6 +2,8 @@ package com.higgs.system.tts;
 
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellValue;
@@ -18,32 +20,47 @@ import java.text.SimpleDateFormat;
 public class ExcelFileOperate {
     private static final String TAG = "ExcelFileOperate";
 
-    public ExcelFileOperate(){
+    private int special;
 
-    }
-
-    private void readExcelFile(String filePath){
+    public Map<Integer, Map<Integer, String>> readExcelFile(String filePath){
+        Map<Integer,Map<Integer, String>> rowline = null;
         try {
-            String print = "";
-            InputStream stream = new FileInputStream(new File(filePath));
-            XSSFWorkbook workbook = new XSSFWorkbook(stream);
-            XSSFSheet sheet = workbook.getSheetAt(0);
-            int rowsCount = sheet.getPhysicalNumberOfRows();
-            FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
-            for (int r = 0; r < rowsCount; r++) {
-                Row row = sheet.getRow(r);
-                int cellsCount = row.getPhysicalNumberOfCells();
-                for (int c = 0; c < cellsCount; c++) {
-                    String value = getCellAsString(row, c, formulaEvaluator);
-                    String cellInfo = "[" + r +":" + c + "]=" + value + " ";
-                    print += cellInfo ;
+//            File excelFile = new File(filePath);
+//            if(excelFile.exists()){
+                rowline = new HashMap<Integer, Map<Integer,String>>();
+                String print = "";
+//                InputStream stream = new FileInputStream(new File(filePath));
+                InputStream stream = TimingAlarmActivity.mContext.getAssets().open("test.xlsx");
+                XSSFWorkbook workbook = new XSSFWorkbook(stream);
+                XSSFSheet sheet = workbook.getSheetAt(0);
+                int rowsCount = sheet.getPhysicalNumberOfRows();
+                FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
+                for (int r = 0; r < rowsCount; r++) {
+                    Row row = sheet.getRow(r);
+                    int cellsCount = row.getPhysicalNumberOfCells();
+                    Map<Integer, String> cellLine = new HashMap<Integer, String>();
+
+                    for (int c = 0; c < cellsCount; c++) {
+                        String value = getCellAsString(row, c, formulaEvaluator);
+                        if(r == 0){
+                            String[] array = value.split("=");
+                            if(array[0].equals("TL")){
+                                special = c;
+                            }
+                        }
+                        cellLine.put(c, value);
+                        String cellInfo = "[" + r +":" + c + "]=" + value + " ";
+                        print += cellInfo ;
+                    }
+                    rowline.put(r, cellLine);
+                    Log.d(TAG, print );
+                    print = "";
                 }
-                Log.i(TAG, print);
-                print = "";
-            }
+//            }
         }catch(Exception e) {
             e.printStackTrace();
         }
+        return rowline;
     }
 
     private String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
@@ -60,8 +77,12 @@ public class ExcelFileOperate {
                         double numericValue = cellValue.getNumberValue();
                         if(HSSFDateUtil.isCellDateFormatted(cell)) {
                             double date = cellValue.getNumberValue();
-                            SimpleDateFormat formatter =
-                                    new SimpleDateFormat("HH:mm");
+                            SimpleDateFormat formatter;
+                            if( c == special ){
+                                formatter = new SimpleDateFormat("mm:ss");
+                            }else{
+                                formatter = new SimpleDateFormat("HH:mm");
+                            }
                             value = formatter.format(HSSFDateUtil.getJavaDate(date));
                         } else {
                             value = ""+numericValue;
