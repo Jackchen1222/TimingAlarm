@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Handler;
 import java.lang.reflect.Field;
 
 public class BellControl {
@@ -13,6 +14,13 @@ public class BellControl {
     private Uri notification;
     private Ringtone ring;
     private static BellControl bellControl;
+    private Handler mHandler;
+    private CountDownTimeThread mCountDownTimeThread;
+
+    public BellControl(){
+        mHandler = new Handler();
+        mCountDownTimeThread = new CountDownTimeThread();
+    }
 
     public static BellControl getInstance(){
         if(bellControl == null){
@@ -21,11 +29,33 @@ public class BellControl {
         return bellControl;
     }
 
-    public void defaultAlarmMediaPlayer() {
-        notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        ring = RingtoneManager.getRingtone(context, notification);
-        setRingtoneRepeat(ring);
-        ring.play();
+    public void defaultAlarmMediaPlayer(){
+        try {
+            notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+            ring = RingtoneManager.getRingtone(context, notification);
+            setRingtoneRepeat(ring);
+            ring.play();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void defaultAlarmMediaPlayer(int second) {
+        defaultAlarmMediaPlayer();
+        try {
+            if(second > 0) {
+                mHandler.postDelayed(mCountDownTimeThread, second * 1000);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private class CountDownTimeThread implements Runnable{
+        @Override
+        public void run() {
+            stopRing();
+        }
     }
 
     /**

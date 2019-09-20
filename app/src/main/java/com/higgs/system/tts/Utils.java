@@ -3,9 +3,12 @@ package com.higgs.system.tts;
 public class Utils {
     public static final String REMINDERS = "jc.help.zx.alarm";
     public static final String BundleExtraFlag = "onceAlarm";
-    public static final String CommonStopRing = "cmd_stop_ring";
+    public static final String excelFilePath = "excel_file_path";
+
+    public static final int LateComerConute = 10;
 
     public enum ExcelOnceCellType{
+        /** 发起闹铃的当天时间 */
         TO(0,"StartTime", "发起时间"),
         TL(1,"ContinueTime", "播放的时间长度"),
         SC(2,"ScreenContent", "屏幕提示内容"),

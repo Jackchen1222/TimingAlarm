@@ -22,19 +22,32 @@ public class ExcelFileOperate {
 
     private int special;
 
-    public Map<Integer, Map<Integer, String>> readExcelFile(String filePath){
+    public enum FileLocation{
+        INNER,
+        PATH,
+    }
+
+    public Map<Integer, Map<Integer, String>> readExcelFile(String filePath, FileLocation fileLocation){
         Map<Integer,Map<Integer, String>> rowline = null;
+        String print = "";
+        InputStream stream = null;
         try {
-//            File excelFile = new File(filePath);
-//            if(excelFile.exists()){
-                rowline = new HashMap<Integer, Map<Integer,String>>();
-                String print = "";
-//                InputStream stream = new FileInputStream(new File(filePath));
-                InputStream stream = TimingAlarmActivity.mContext.getAssets().open("test.xlsx");
+            if(fileLocation == FileLocation.PATH ){
+                File excelFile = new File(filePath);
+                if(!excelFile.exists()){
+                    return null;
+                }
+                stream = new FileInputStream(new File(filePath));
+            }else if(fileLocation == FileLocation.INNER ){
+                stream = TimingAlarmActivity.mContext.getAssets().open(filePath);
+            }
+            if(stream != null) {
+                rowline = new HashMap<Integer, Map<Integer, String>>();
                 XSSFWorkbook workbook = new XSSFWorkbook(stream);
                 XSSFSheet sheet = workbook.getSheetAt(0);
                 int rowsCount = sheet.getPhysicalNumberOfRows();
-                FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
+                FormulaEvaluator formulaEvaluator = workbook.getCreationHelper()
+                        .createFormulaEvaluator();
                 for (int r = 0; r < rowsCount; r++) {
                     Row row = sheet.getRow(r);
                     int cellsCount = row.getPhysicalNumberOfCells();
@@ -42,21 +55,21 @@ public class ExcelFileOperate {
 
                     for (int c = 0; c < cellsCount; c++) {
                         String value = getCellAsString(row, c, formulaEvaluator);
-                        if(r == 0){
+                        if (r == 0) {
                             String[] array = value.split("=");
-                            if(array[0].equals("TL")){
+                            if (array[0].equals("TL")) {
                                 special = c;
                             }
                         }
                         cellLine.put(c, value);
-                        String cellInfo = "[" + r +":" + c + "]=" + value + " ";
-                        print += cellInfo ;
+                        String cellInfo = "[" + r + ":" + c + "]=" + value + " ";
+                        print += cellInfo;
                     }
                     rowline.put(r, cellLine);
-                    Log.d(TAG, print );
+//                    Log.d(TAG, print);
                     print = "";
                 }
-//            }
+            }
         }catch(Exception e) {
             e.printStackTrace();
         }
