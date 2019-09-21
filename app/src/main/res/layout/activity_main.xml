@@ -6,33 +6,69 @@
   android:layout_height="match_parent">
 
   <LinearLayout
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+      android:orientation="horizontal"
+      android:layout_margin="5dp"
+      android:layout_weight="1"
+      android:layout_width="match_parent"
+      android:layout_height="0dp">
+      <TextView
+            android:id="@+id/showExcelPath"
+            android:hint="Excel文件路径"
+            android:layout_margin="1dp"
+            android:gravity="center"
+            android:layout_weight="4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
       <Button
-        android:id="@+id/"
-        android:layout_width="wrap_content"
+            android:id="@+id/btn_choose_file_path"
+            android:text="..."
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_margin="5dp"
+      android:orientation="horizontal"
+      android:layout_width="match_parent"
+      android:layout_weight="1"
+      android:layout_height="0dp">
+    <Button
+        android:id="@+id/stopCurrentAlarm"
+        android:text="关闭当前闹铃"
+        android:background="@drawable/selector"
+        android:textSize="20sp"
+        android:layout_margin="3dp"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"/>
+    <Button
+        android:id="@+id/startSettingAlarm"
+        android:text="开始设置闹铃"
+        android:background="@drawable/selector"
+        android:textSize="20sp"
+        android:layout_margin="3dp"
+        android:layout_weight="1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"/>
   </LinearLayout>
 
-  <Button
-    android:id="@+id/startAlarm"
-    android:text="启动系统闹铃"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"/>
-  <Button
-    android:id="@+id/deleteAlarm"
-    android:text="删除闹铃"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <com.dalong.marqueeview.MarqueeView
+            android:id="@+id/rollScreenContent"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:direction="left"
+            app:isRepeat="true"
+            app:speed="15"
+            app:startPoint="start"
+            app:textSize="30sp"
+            app:textcolor="@color/orange" />
+    </LinearLayout>
 
-  <com.google.android.material.floatingactionbutton.FloatingActionButton
-    android:id="@+id/fab"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="end|bottom"
-    android:layout_margin="@dimen/fab_margin"
-    android:tint="@android:color/white"
-    app:srcCompat="@drawable/open_in_new" />
 
 </LinearLayout>

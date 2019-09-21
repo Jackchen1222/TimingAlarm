@@ -35,6 +35,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                         mExcelRowDataAccept.continueTMin * 60
                                 + mExcelRowDataAccept.continueTSecond );
                 TimingAlarmActivity.mSpeakerServiceBinder.speek(mExcelRowDataAccept.voicePlay);
+                TimingAlarmActivity.mvRollScreenContent.setText(mExcelRowDataAccept.screenShow);
+                TimingAlarmActivity.mvRollScreenContent.startScroll();
             }
         }
     }

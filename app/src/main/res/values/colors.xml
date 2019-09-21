@@ -3,4 +3,34 @@
   <color name="colorPrimary">#008577</color>
   <color name="colorPrimaryDark">#00574B</color>
   <color name="colorAccent">#D81B60</color>
+
+
+  <!--drawable name="clr_normal">#ff6501</drawable>
+  <drawable name="clr_pressed">#a44100</drawable-->
+
+  <drawable name="clr_normal">#008577</drawable>
+  <drawable name="clr_pressed">#00574B</drawable>
+
+  <color name="orange">#ff6501</color>
+
+  <array name="paranoid_theme">
+    <!-- Overview -->
+    <item>#151515</item> <!--  Top Header bg -->
+    <item>#2c9633</item> <!-- header text   -->
+    <item>#252525</item> <!-- list bg  -->
+    <item>@android:color/white</item> <!--  storage list name text  -->
+    <item>#e1e1e1</item> <!-- free space text  -->
+    <item>#2c9633</item> <!-- memory bar -->
+
+    <!-- secondary dialog colors -->
+    <item>#151515</item> <!-- folder tint -->
+    <item>#252525</item> <!-- list bg -->
+    <item>@android:color/white</item> <!-- list text -->
+    <item>#151515</item> <!-- address bar tint -->
+    <item>@color/chevronBgColor</item> <!-- new folder hint tint -->
+    <item>#2c9633</item> <!-- select button color -->
+    <item>#da6c6c</item> <!-- new folder layour bg -->
+    <item>#2c9633</item> <!-- fab multi color -->
+    <item>#151515</item> <!-- address bar bg -->
+  </array>
 </resources>

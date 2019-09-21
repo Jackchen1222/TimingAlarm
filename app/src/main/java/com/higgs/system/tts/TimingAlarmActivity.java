@@ -27,11 +27,15 @@ import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.baidu.tts.client.SpeechError;
 import com.codekidlabs.storagechooser.Content;
 import com.codekidlabs.storagechooser.StorageChooser;
+import com.codekidlabs.storagechooser.utils.DiskUtil;
+import com.dalong.marqueeview.MarqueeView;
 import com.help.excel.DirTraversal;
 import com.help.excel.PermissionsUtils;
 import com.help.excel.SaveParameter;
@@ -42,6 +46,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -75,6 +80,10 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     private boolean forceModifyExcelFile;
     private StorageChooser.Builder builder = new StorageChooser.Builder();
     private StorageChooser chooser;
+    private Button btnChooseExcelPath,btnStopCurrentAlarm, btnStartSetAlarm;
+    private TextView tvShowExcelPath;
+    public static MarqueeView mvRollScreenContent;
+    private static int countAlarm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,9 +94,59 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     }
 
     private void initView(){
-        findViewById(R.id.startAlarm).setOnClickListener(this);
-        findViewById(R.id.deleteAlarm).setOnClickListener(this);
+        btnChooseExcelPath = findViewById(R.id.btn_choose_file_path);
+        btnChooseExcelPath.setOnClickListener(this);
+        btnStopCurrentAlarm = findViewById(R.id.stopCurrentAlarm);
+        btnStopCurrentAlarm.setOnClickListener(this);
+        btnStartSetAlarm = findViewById(R.id.startSettingAlarm);
+        btnStartSetAlarm.setOnClickListener(this);
+        tvShowExcelPath = findViewById(R.id.showExcelPath);
+        mvRollScreenContent = findViewById(R.id.rollScreenContent);
     }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()){
+            case R.id.btn_choose_file_path:
+                chooser = builder.build();
+                chooser.setOnSelectListener(new StorageChooser.OnSelectListener() {
+                    @Override
+                    public void onSelect(String path) {
+                        Log.e(TAG, "path=" + path);
+                        tvShowExcelPath.setText(path);
+                        mSaveParameter.setEditorValue(Utils.excelFilePath, path );
+                        Toast.makeText(TimingAlarmActivity.this, "您选择的路径是" + path, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                chooser.setOnCancelListener(new StorageChooser.OnCancelListener() {
+                    @Override
+                    public void onCancel() {
+                        Toast.makeText(getApplicationContext(), "Storage Chooser Cancelled.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                chooser.setOnMultipleSelectListener(new StorageChooser.OnMultipleSelectListener() {
+                    @Override
+                    public void onDone(ArrayList<String> selectedFilePaths) {
+                        for(String s: selectedFilePaths) {
+                            Log.e(TAG, s);
+                        }
+                    }
+                });
+
+                chooser.show();
+            case R.id.stopCurrentAlarm:
+                BellControl.getInstance().stopRing();
+                break;
+            case R.id.startSettingAlarm:
+                countAlarm = 0;
+                mHandler.post(mReadExcelFileContentThread);
+                break;
+            default:
+        }
+    }
+
 
     private synchronized void initStatus(){
         mContext = this;
@@ -105,82 +164,32 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                 .setMemoryBarHeight(1.5f)
 //                .disableMultiSelect()
                 .withContent(c);
+        builder.crunch();
+        builder.setType(StorageChooser.FILE_PICKER);
+        builder.skipOverview(true);
+        builder.allowCustomPath(true);
+
+        ArrayList<String> formats = new ArrayList<>();
+        formats.add("xlsx");
+        formats.add("xls");
+        builder.customFilter(formats);
 
         mSaveParameter = new SaveParameter(this);
         mHandler = new Handler();
         mReadExcelFileContentThread = new ReadExcelFileContentThread();
-//        mHandler.post(mReadExcelFileContentThread);
+        tvShowExcelPath.setText(mSaveParameter.getEditorValue(Utils.excelFilePath));
         getpermission();
         bindSpeakerService();
         BellControl.context = this;
     }
 
-    private String[] dialogItemts;
-
-    private class getExcelFileList implements Runnable{
-        @Override
-        public void run() {
-            DirTraversal dirTraversal = new DirTraversal();
-            List<File> dialogFileList = dirTraversal.listFiles("/sdcard/tencent/");
-//            List<File> dialogFileList = dirTraversal.listFiles("/sdcard/tencent/QQfile_recv/");
-//            List<File> tempList = dirTraversal.listFiles("/sdcard/tencent/MicroMsg/download/");
-            if(dialogFileList != null){
-
-            }else{
-                dialogItemts = null;
-            }
-        }
+    private StorageChooser.Theme getScTheme(boolean isChecked) {
+        StorageChooser.Theme theme = new StorageChooser.Theme(getApplicationContext());
+        theme.setScheme((isChecked) ? getResources().getIntArray(R.array.paranoid_theme) : theme.getDefaultScheme());
+        return theme;
     }
 
-
     private class ReadExcelFileContentThread implements Runnable{
-        private int dialogYourChoice;
-        private String dialogExcelFilePath;
-        private List<File> dialogFileList;
-        private String[] dialogItemts;
-        private void showListDialog(){
-
-            dialogItemts = new String[dialogFileList.size()];
-            dialogYourChoice = 0;
-            for(File file : dialogFileList ){
-                dialogItemts[dialogYourChoice++] = file.getName();
-            }
-            dialogYourChoice = 0;
-            AlertDialog.Builder sigleChoiceDialog = new Builder(TimingAlarmActivity.this);
-            sigleChoiceDialog.setTitle("请选择Excel文件");
-            sigleChoiceDialog.setSingleChoiceItems(dialogItemts, 0, new OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogYourChoice = i;
-                    for(File file : dialogFileList){
-                        if(file.getName().equals(dialogItemts[i])){
-                            dialogExcelFilePath = file.getPath();
-                            break;
-                        }
-                    }
-                }
-            });
-            sigleChoiceDialog.setPositiveButton("确认", new DialogInterface.OnClickListener(){
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    Log.e(TAG, "choice excel file path:" + dialogExcelFilePath );
-                    Toast.makeText(TimingAlarmActivity.this,
-                            "你选择了" + dialogItemts[dialogYourChoice],
-                            Toast.LENGTH_SHORT ).show();
-                    mSaveParameter.setEditorValue(Utils.excelFilePath, dialogExcelFilePath );
-                    dialogInterface.dismiss();
-                }
-            });
-            sigleChoiceDialog.setNegativeButton("取消", new DialogInterface.OnClickListener(){
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    Log.e(TAG, "取消了选择!");
-                    dialogExcelFilePath = null;
-                    dialogInterface.dismiss();
-                }
-            });
-            sigleChoiceDialog.show();
-        }
 
         @Override
         public void run() {
@@ -188,14 +197,12 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
             int[] cellOrder = new int[typeLen];
             ExcelFileOperate efo = new ExcelFileOperate();
             String readExcelFilePath = mSaveParameter.getEditorValue(Utils.excelFilePath);
-            if(forceModifyExcelFile || readExcelFilePath == null){
-                showListDialog();
-            }
-            if(readExcelFilePath == null){
-                Toast.makeText(TimingAlarmActivity.this, "没有Excel文件!", Toast.LENGTH_LONG).show();
+            if(readExcelFilePath != null && !readExcelFilePath.trim().equals("")){
+                excelMap = efo.readExcelFile(readExcelFilePath, FileLocation.PATH );
+            }else{
+                Toast.makeText(TimingAlarmActivity.this, "Excel文件路径有问题!", Toast.LENGTH_LONG).show();
                 return ;
             }
-            excelMap = efo.readExcelFile(readExcelFilePath, FileLocation.PATH );
             Iterator<Map.Entry<Integer, Map<Integer, String>>> entries = excelMap.entrySet().iterator();
             while(entries.hasNext()){
                 Map.Entry<Integer, Map<Integer, String>> rowEntry = entries.next();
@@ -232,6 +239,13 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                 if(rowEntry.getKey() > 0) {
                     addAlarm(startT, continueT, screenC, voiceC, remarkS, rowEntry.getKey());
                 }
+            }
+            if(countAlarm > 0){
+                Log.e(TAG, "一共添加了" + countAlarm + "个闹铃" );
+                Toast.makeText(TimingAlarmActivity.this,
+                        "一共添加了" + countAlarm + "个闹铃",
+                        Toast.LENGTH_LONG)
+                        .show();
             }
         }
     }
@@ -276,6 +290,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 //        calendar.add(Calendar.SECOND, time );//系统时间推迟五秒钟，如果为-5，那么就是比系统时间提前五秒钟
             AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
             alarm.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
+            countAlarm++;
         }
     }
 
@@ -285,23 +300,6 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         PendingIntent sender= PendingIntent.getBroadcast(this, 0, intent, 0);
         AlarmManager alarm=(AlarmManager)getSystemService(ALARM_SERVICE);
         alarm.cancel(sender);
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch(view.getId()){
-            case R.id.startAlarm:
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent,1);
-                break;
-            case R.id.deleteAlarm:
-                BellControl.getInstance().stopRing();
-                mSaveParameter.deleteAllValue();
-                break;
-                default:
-        }
     }
 
     //创建监听权限的接口对象
