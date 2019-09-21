@@ -55,25 +55,10 @@ public class BellControl {
         }
     }
 
-    public void defaultAlarmMediaPlayer(PowerManager.WakeLock wakeLock, int second){
-        defaultAlarmMediaPlayer();
-        bcWakeLock = wakeLock;
-        try {
-            if(second > 0) {
-                mHandler.postDelayed(mCountDownTimeThread, second * 1000);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
     private class CountDownTimeThread implements Runnable{
         @Override
         public void run() {
             stopRing();
-            if(bcWakeLock != null){
-                bcWakeLock.release();
-            }
         }
     }
 
