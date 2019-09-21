@@ -177,7 +177,9 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         mSaveParameter = new SaveParameter(this);
         mHandler = new Handler();
         mReadExcelFileContentThread = new ReadExcelFileContentThread();
-        tvShowExcelPath.setText(mSaveParameter.getEditorValue(Utils.excelFilePath));
+        if(mSaveParameter.getEditorValue(Utils.excelFilePath) != null) {
+            tvShowExcelPath.setText(mSaveParameter.getEditorValue(Utils.excelFilePath));
+        }
         getpermission();
         bindSpeakerService();
         BellControl.context = this;
