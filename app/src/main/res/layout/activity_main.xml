@@ -13,7 +13,7 @@
       android:layout_height="0dp">
       <TextView
             android:id="@+id/showExcelPath"
-            android:hint="Excel文件路径"
+            android:hint="请设置Excel文件路径"
             android:layout_margin="1dp"
             android:gravity="center"
             android:layout_weight="4"

@@ -1,5 +1,6 @@
 package com.higgs.system.tts;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 import com.help.excel.ExcelRowDataAccept;
@@ -21,22 +23,39 @@ import java.util.Date;
 public class AlarmReceiver extends BroadcastReceiver {
     private static final String TAG = "AlarmReceiver";
     private ExcelRowDataAccept mExcelRowDataAccept;
+    PowerManager mPowerManager;
+    private boolean isUnlocked = false;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if(action.equals(Utils.REMINDERS)){
+            mPowerManager= (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            @SuppressLint("InvalidWakeLockTag")
+            PowerManager.WakeLock wakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
+            if(wakeLock.isHeld()) {
+                wakeLock.acquire();
+                isUnlocked = true;
+            }
             mExcelRowDataAccept = getAcceptData(intent.getBundleExtra(Utils.BundleExtraFlag));
             if(whetherTurnOnAlarm()){
                 if(BellControl.getInstance().isPlaying()){
                     BellControl.getInstance().stopRing();
                 }
-                BellControl.getInstance().defaultAlarmMediaPlayer(
-                        mExcelRowDataAccept.continueTMin * 60
-                                + mExcelRowDataAccept.continueTSecond );
+                if(isUnlocked) {
+                    BellControl.getInstance().defaultAlarmMediaPlayer(wakeLock,
+                            mExcelRowDataAccept.continueTMin * 60
+                                    + mExcelRowDataAccept.continueTSecond);
+                    isUnlocked = false;
+                }else{
+                    BellControl.getInstance().defaultAlarmMediaPlayer(
+                            mExcelRowDataAccept.continueTMin * 60
+                                    + mExcelRowDataAccept.continueTSecond);
+                }
                 TimingAlarmActivity.mSpeakerServiceBinder.speek(mExcelRowDataAccept.voicePlay);
                 TimingAlarmActivity.mvRollScreenContent.setText(mExcelRowDataAccept.screenShow);
                 TimingAlarmActivity.mvRollScreenContent.startScroll();
+
             }
         }
     }

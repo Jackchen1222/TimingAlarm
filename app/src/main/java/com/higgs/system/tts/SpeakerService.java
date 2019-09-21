@@ -150,9 +150,9 @@ public class SpeakerService extends Service {
         // 设置合成的音量，0-9 ，默认 5
         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_VOLUME, "9" );
         // 设置合成的语速，0-9 ，默认 5
-        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, "4");
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, "5");
         // 设置合成的语调，0-9 ，默认 5
-        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_PITCH, "9");
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_PITCH, "8");
 
         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_MIX_MODE, SpeechSynthesizer.MIX_MODE_DEFAULT);
         // 该参数设置为TtsMode.MIX生效。即纯在线模式不生效。

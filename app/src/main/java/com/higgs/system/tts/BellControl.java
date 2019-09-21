@@ -6,6 +6,8 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.PowerManager;
+
 import java.lang.reflect.Field;
 
 public class BellControl {
@@ -16,6 +18,7 @@ public class BellControl {
     private static BellControl bellControl;
     private Handler mHandler;
     private CountDownTimeThread mCountDownTimeThread;
+    private PowerManager.WakeLock bcWakeLock;
 
     public BellControl(){
         mHandler = new Handler();
@@ -42,6 +45,19 @@ public class BellControl {
 
     public void defaultAlarmMediaPlayer(int second) {
         defaultAlarmMediaPlayer();
+        bcWakeLock = null;
+        try {
+            if(second > 0) {
+                mHandler.postDelayed(mCountDownTimeThread, second * 1000);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void defaultAlarmMediaPlayer(PowerManager.WakeLock wakeLock, int second){
+        defaultAlarmMediaPlayer();
+        bcWakeLock = wakeLock;
         try {
             if(second > 0) {
                 mHandler.postDelayed(mCountDownTimeThread, second * 1000);
@@ -55,6 +71,9 @@ public class BellControl {
         @Override
         public void run() {
             stopRing();
+            if(bcWakeLock != null){
+                bcWakeLock.release();
+            }
         }
     }
 

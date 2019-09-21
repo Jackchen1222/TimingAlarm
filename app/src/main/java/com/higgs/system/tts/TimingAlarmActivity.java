@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TimingAlarmActivity extends Activity implements View.OnClickListener {
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "TimingAlarmActivity";
     public static Context mContext;
     public static SpeakerServiceBinder mSpeakerServiceBinder;
 
