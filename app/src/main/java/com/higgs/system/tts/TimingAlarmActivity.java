@@ -6,6 +6,7 @@ import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.PendingIntent;
+import android.app.PendingIntent.CanceledException;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -46,12 +47,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SimpleTimeZone;
+import java.util.logging.SimpleFormatter;
 
 public class TimingAlarmActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "TimingAlarmActivity";
@@ -80,10 +84,12 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     private boolean forceModifyExcelFile;
     private StorageChooser.Builder builder = new StorageChooser.Builder();
     private StorageChooser chooser;
-    private Button btnChooseExcelPath,btnStopCurrentAlarm, btnStartSetAlarm;
+    private Button btnChooseExcelPath,btnStopCurrentAlarm, btnStartSetAlarm, btnTest;
     private TextView tvShowExcelPath;
     public static MarqueeView mvRollScreenContent;
     private static int countAlarm;
+    private int isTestAlarmId;
+    private boolean isTestStates;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +108,8 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         btnStartSetAlarm.setOnClickListener(this);
         tvShowExcelPath = findViewById(R.id.showExcelPath);
         mvRollScreenContent = findViewById(R.id.rollScreenContent);
+        btnTest = findViewById(R.id.testAlarm);
+        btnTest.setOnClickListener(this);
     }
 
     @Override
@@ -136,12 +144,33 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                 });
 
                 chooser.show();
+                break;
             case R.id.stopCurrentAlarm:
                 BellControl.getInstance().stopRing();
                 break;
             case R.id.startSettingAlarm:
                 countAlarm = 0;
                 mHandler.post(mReadExcelFileContentThread);
+                break;
+            case R.id.testAlarm:
+                if(isTestStates){
+                    BellControl.getInstance().defaultAlarmMediaPlayer();
+                    mSpeakerServiceBinder.speek("你好呀,小朋友！");
+                    btnTest.setText("关闭");
+                    isTestStates = false;
+                }else{
+                    if(BellControl.getInstance().isPlaying()){
+                        BellControl.getInstance().stopRing();
+                    }
+                    btnTest.setText("开启");
+                    isTestStates = true;
+                }
+
+//                Calendar calendar = Calendar.getInstance();
+//                Date date = calendar.getTime();
+//                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+//                String startTime = sdf.format(date);
+//                addAlarm(startTime, "0:20", "闹铃时间到了!", "你好呀，小朋友", "无", isTestAlarmId++);
                 break;
             default:
         }
@@ -150,6 +179,8 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 
     private synchronized void initStatus(){
         mContext = this;
+        isTestAlarmId = 1000;
+        isTestStates = false;
         forceModifyExcelFile = false;
         // ----------------- Localization -------------------
         Content c = new Content();
