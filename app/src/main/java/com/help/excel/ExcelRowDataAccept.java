@@ -1,6 +1,6 @@
 package com.help.excel;
 
-import android.util.Log;
+import com.help.excel.*;
 
 public class ExcelRowDataAccept {
     private static final String TAG = "ExcelRowDataAccept";
@@ -23,7 +23,7 @@ public class ExcelRowDataAccept {
     }
 
     public void show(){
-        Log.e(TAG, "StartTime=" + startTHour + ":" + startTMin
+        LogUtils.e(TAG, "StartTime=" + startTHour + ":" + startTMin
                 + ",continueTime=" + continueTMin + ":" + continueTSecond
                 + ",screenShow=" + screenShow
                 + ",voicePlay=" + voicePlay

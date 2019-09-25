@@ -4,6 +4,7 @@
     package="com.higgs.system.tts">
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:appComponentFactory="chenbin"
         android:icon="@mipmap/icon"

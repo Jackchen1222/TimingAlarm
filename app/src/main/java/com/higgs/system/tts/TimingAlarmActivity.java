@@ -26,7 +26,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -38,6 +37,7 @@ import com.codekidlabs.storagechooser.StorageChooser;
 import com.codekidlabs.storagechooser.utils.DiskUtil;
 import com.dalong.marqueeview.MarqueeView;
 import com.help.excel.DirTraversal;
+import com.help.excel.LogUtils;
 import com.help.excel.PermissionsUtils;
 import com.help.excel.SaveParameter;
 import com.higgs.system.tts.ExcelFileOperate.FileLocation;
@@ -65,7 +65,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     private ServiceConnection mconnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            Log.e(TAG, "speaker service connect!");
+            LogUtils.e(TAG, "speaker service connect!");
             mSpeakerServiceBinder = (SpeakerServiceBinder)iBinder;
             mSpeakerServiceBinder.initListener(new MyTtsListener());
         }
@@ -73,7 +73,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mSpeakerServiceBinder = null;
-            Log.e(TAG, "speaker service disconnect!");
+            LogUtils.e(TAG, "speaker service disconnect!");
         }
     };
 
@@ -120,7 +120,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                 chooser.setOnSelectListener(new StorageChooser.OnSelectListener() {
                     @Override
                     public void onSelect(String path) {
-                        Log.e(TAG, "path=" + path);
+                        LogUtils.e(TAG, "path=" + path);
                         tvShowExcelPath.setText(path);
                         mSaveParameter.setEditorValue(Utils.excelFilePath, path );
                         Toast.makeText(TimingAlarmActivity.this, "您选择的路径是" + path, Toast.LENGTH_SHORT).show();
@@ -138,7 +138,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                     @Override
                     public void onDone(ArrayList<String> selectedFilePaths) {
                         for(String s: selectedFilePaths) {
-                            Log.e(TAG, s);
+                            LogUtils.e(TAG, s);
                         }
                     }
                 });
@@ -155,15 +155,21 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
             case R.id.testAlarm:
                 if(isTestStates){
                     BellControl.getInstance().defaultAlarmMediaPlayer();
-                    mSpeakerServiceBinder.speek("你好呀,小朋友！");
+//                    mSpeakerServiceBinder.speek("你好呀,小朋友！");
                     btnTest.setText("关闭");
                     isTestStates = false;
                 }else{
                     if(BellControl.getInstance().isPlaying()){
                         BellControl.getInstance().stopRing();
                     }
+//                    mSpeakerServiceBinder.stop();
                     btnTest.setText("开启");
                     isTestStates = true;
+                }
+                try {
+                    throw new Exception();
+                } catch (Exception e) {
+                    LogUtils.e(TAG, "testAlarm status=" + isTestStates);
                 }
 
 //                Calendar calendar = Calendar.getInstance();
@@ -212,7 +218,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
             tvShowExcelPath.setText(mSaveParameter.getEditorValue(Utils.excelFilePath));
         }
         getpermission();
-        bindSpeakerService();
+//        bindSpeakerService();
         BellControl.context = this;
     }
 
@@ -251,7 +257,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                             }
                         }
 //                        for(int i = 0;i < typeLen; i++){
-//                            Log.e(TAG, "cellOrder[" + i + "]=" + cellOrder[i]);
+//                            LogUtils.e(TAG, "cellOrder[" + i + "]=" + cellOrder[i]);
 //                        }
                     }else{
                         int iorder = cEntry.getKey();
@@ -274,7 +280,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                 }
             }
             if(countAlarm > 0){
-                Log.e(TAG, "一共添加了" + countAlarm + "个闹铃" );
+                LogUtils.e(TAG, "一共添加了" + countAlarm + "个闹铃" );
                 Toast.makeText(TimingAlarmActivity.this,
                         "一共添加了" + countAlarm + "个闹铃",
                         Toast.LENGTH_LONG)
@@ -301,7 +307,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 
     private void addAlarm( String startTime, String continueTime, String screenContent,
                            String voiceContent, String remarkStr, int id){
-        Log.e( TAG, "startTime=" + startTime + ",continueTime=" + continueTime
+        LogUtils.e( TAG, "startTime=" + startTime + ",continueTime=" + continueTime
                 + ",screenContent=" + screenContent + ",voiceContent=" + voiceContent
                 + ",remarkStr=" + remarkStr + ",id=" + id );
         if(!startTime.trim().equals("")) {
@@ -368,12 +374,12 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 
         @Override
         public void speechStart(String s) {
-            Log.e(TAG, "speechStart");
+            LogUtils.e(TAG, "speechStart");
         }
 
         @Override
         public void speechFinish(String s) {
-            Log.e(TAG, "speechFinish");
+            LogUtils.e(TAG, "speechFinish");
         }
 
         @Override
