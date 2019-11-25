@@ -23,6 +23,8 @@ import java.util.Date;
 public class AlarmReceiver extends BroadcastReceiver {
     private static final String TAG = "AlarmReceiver";
     private ExcelRowDataAccept mExcelRowDataAccept;
+    private static String speakerContentStr;
+    private static boolean isContinueSpeaker;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -37,11 +39,12 @@ public class AlarmReceiver extends BroadcastReceiver {
                 BellControl.getInstance().defaultAlarmMediaPlayer(
                         mExcelRowDataAccept.continueTMin * 60
                                 + mExcelRowDataAccept.continueTSecond);
-
-//                TimingAlarmActivity.mSpeakerServiceBinder.speek(mExcelRowDataAccept.voicePlay);
+                TimingAlarmActivity.isContinueSpeaker = true;
+                TimingAlarmActivity.speakerContentStr = mExcelRowDataAccept.voicePlay;
+                TimingAlarmActivity.mSpeakerServiceBinder.speek(mExcelRowDataAccept.voicePlay);
                 TimingAlarmActivity.mvRollScreenContent.setText(mExcelRowDataAccept.screenShow);
                 TimingAlarmActivity.mvRollScreenContent.startScroll();
-
+                TimingAlarmActivity.mThirdCallbackHandler.sendEmptyMessage(TimingAlarmActivity.OffButton);
             }
         }
     }
@@ -60,6 +63,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         if( differenceValue <= Utils.LateComerConute ){
             return true;
         }else{
+            TimingAlarmActivity.mSpeakerServiceBinder.stop();
+            TimingAlarmActivity.isContinueSpeaker = false;
             return false;
         }
     }

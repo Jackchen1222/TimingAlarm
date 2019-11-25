@@ -78,7 +78,7 @@
             app:isRepeat="true"
             app:speed="15"
             app:startPoint="start"
-            app:textSize="30sp"
+            app:textSize="100sp"
             app:textcolor="@color/orange" />
     </LinearLayout>
 

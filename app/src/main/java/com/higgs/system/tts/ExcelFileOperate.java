@@ -66,7 +66,7 @@ public class ExcelFileOperate {
                         print += cellInfo;
                     }
                     rowline.put(r, cellLine);
-//                    Log.d(TAG, print);
+                    Log.d(TAG, print);
                     print = "";
                 }
             }

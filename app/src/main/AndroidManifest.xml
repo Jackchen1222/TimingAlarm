@@ -6,6 +6,7 @@
     <application
         android:name=".MyApplication"
         android:allowBackup="true"
+        android:testOnly="false"
         android:appComponentFactory="chenbin"
         android:icon="@mipmap/icon"
         android:label="@string/app_name"

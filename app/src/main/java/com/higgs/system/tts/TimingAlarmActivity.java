@@ -26,6 +26,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -61,6 +62,9 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     private static final String TAG = "TimingAlarmActivity";
     public static Context mContext;
     public static SpeakerServiceBinder mSpeakerServiceBinder;
+    public static String speakerContentStr;
+    public static boolean isContinueSpeaker;
+    public static ThirdCallbackHandler mThirdCallbackHandler;
 
     private ServiceConnection mconnection = new ServiceConnection() {
         @Override
@@ -88,7 +92,6 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     private TextView tvShowExcelPath;
     public static MarqueeView mvRollScreenContent;
     private static int countAlarm;
-    private int isTestAlarmId;
     private boolean isTestStates;
 
     @Override
@@ -155,14 +158,16 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
             case R.id.testAlarm:
                 if(isTestStates){
                     BellControl.getInstance().defaultAlarmMediaPlayer();
-//                    mSpeakerServiceBinder.speek("你好呀,小朋友！");
+                    mSpeakerServiceBinder.speek("你好呀,小朋友！");
+//                    mvRollScreenContent.setText("你好呀!");
+//                    mvRollScreenContent.startScroll();
                     btnTest.setText("关闭");
                     isTestStates = false;
                 }else{
                     if(BellControl.getInstance().isPlaying()){
                         BellControl.getInstance().stopRing();
                     }
-//                    mSpeakerServiceBinder.stop();
+                    mSpeakerServiceBinder.stop();
                     btnTest.setText("开启");
                     isTestStates = true;
                 }
@@ -184,8 +189,10 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 
 
     private synchronized void initStatus(){
+        mThirdCallbackHandler = new ThirdCallbackHandler();
+        speakerContentStr = "";
+        isContinueSpeaker=false;
         mContext = this;
-        isTestAlarmId = 1000;
         isTestStates = false;
         forceModifyExcelFile = false;
         // ----------------- Localization -------------------
@@ -218,7 +225,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
             tvShowExcelPath.setText(mSaveParameter.getEditorValue(Utils.excelFilePath));
         }
         getpermission();
-//        bindSpeakerService();
+        bindSpeakerService();
         BellControl.context = this;
     }
 
@@ -243,11 +250,13 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                 return ;
             }
             Iterator<Map.Entry<Integer, Map<Integer, String>>> entries = excelMap.entrySet().iterator();
+            LogUtils.e(TAG, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             while(entries.hasNext()){
                 Map.Entry<Integer, Map<Integer, String>> rowEntry = entries.next();
                 Map<Integer, String> cellEntry = rowEntry.getValue();
                 String startT = "", continueT = "", screenC = "", voiceC = "", remarkS = "";
                 for(Map.Entry<Integer, String> cEntry :cellEntry.entrySet()){
+                    LogUtils.d(TAG, "[" + rowEntry.getKey() + ":" + cEntry.getKey() + "]=" + cEntry.getValue());
                     if(rowEntry.getKey() == 0){
                         String[] cellArray = cEntry.getValue().split("=");
                         for(int i = 0 ; i < typeLen; i++){
@@ -256,21 +265,27 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
                                 break;
                             }
                         }
-//                        for(int i = 0;i < typeLen; i++){
-//                            LogUtils.e(TAG, "cellOrder[" + i + "]=" + cellOrder[i]);
-//                        }
-                    }else{
+                        for(int i = 0;i < typeLen; i++){
+                            LogUtils.e(TAG, "cellOrder[" + i + "]=" + cellOrder[i]);
+                        }
+                    }
+                    else{
                         int iorder = cEntry.getKey();
                         String value = cEntry.getValue();
-                        if(Utils.ExcelOnceCellType.TO.getCellType() == cellOrder[iorder] ){
+//                        if(Utils.ExcelOnceCellType.TO.getCellType() == cellOrder[iorder] ){
+                        if(iorder == 0 ) {
                             startT = value;
-                        }else if(Utils.ExcelOnceCellType.TL.getCellType() == cellOrder[iorder]){
+//                        }else if(Utils.ExcelOnceCellType.TL.getCellType() == cellOrder[iorder]){
+                        }else if(iorder == 1) {
                             continueT = value;
-                        }else if(Utils.ExcelOnceCellType.SC.getCellType() == cellOrder[iorder]){
+//                        }else if(Utils.ExcelOnceCellType.SC.getCellType() == cellOrder[iorder]){
+                        }else if(iorder == 2) {
                             screenC = value;
-                        }else if(Utils.ExcelOnceCellType.VC.getCellType() == cellOrder[iorder]){
+//                        }else if(Utils.ExcelOnceCellType.VC.getCellType() == cellOrder[iorder]){
+                        }else if(iorder == 3) {
                             voiceC = value;
-                        }else if(Utils.ExcelOnceCellType.RM.getCellType() == cellOrder[iorder]){
+//                        }else if(Utils.ExcelOnceCellType.RM.getCellType() == cellOrder[iorder]){
+                        }else if (iorder ==4) {
                             remarkS = value;
                         }
                     }
@@ -341,6 +356,24 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         alarm.cancel(sender);
     }
 
+    public static final int OnButton = 1001;
+    public static final int OffButton = 1002;
+
+    public class ThirdCallbackHandler extends Handler{
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if(msg.what == OnButton){
+                isTestStates = true;
+                btnTest.setText("开启");
+            }else if(msg.what == OffButton){
+                isTestStates = false;
+                btnTest.setText("关闭");
+            }
+        }
+    }
+
     //创建监听权限的接口对象
     PermissionsUtils.IPermissionsResult permissionsResult = new PermissionsUtils.IPermissionsResult() {
         @Override
@@ -380,6 +413,9 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         @Override
         public void speechFinish(String s) {
             LogUtils.e(TAG, "speechFinish");
+            if(isContinueSpeaker){
+                mSpeakerServiceBinder.speek(speakerContentStr);
+            }
         }
 
         @Override

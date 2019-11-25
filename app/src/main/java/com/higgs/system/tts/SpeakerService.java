@@ -229,7 +229,7 @@ public class SpeakerService extends Service {
         // 设置合成的音量，0-9 ，默认 5
         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_VOLUME, "9" );
         // 设置合成的语速，0-9 ，默认 5
-        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, "5");
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, "3");
         // 设置合成的语调，0-9 ，默认 5
         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_PITCH, "8");
 
