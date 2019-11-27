@@ -73,7 +73,7 @@
         <com.dalong.marqueeview.MarqueeView
             android:id="@+id/rollScreenContent"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="150dp"
             app:direction="left"
             app:isRepeat="true"
             app:speed="15"
