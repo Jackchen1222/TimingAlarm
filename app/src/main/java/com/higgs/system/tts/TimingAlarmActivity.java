@@ -56,6 +56,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 import java.util.logging.SimpleFormatter;
 
 public class TimingAlarmActivity extends Activity implements View.OnClickListener {
@@ -93,6 +94,8 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     public static MarqueeView mvRollScreenContent;
     private static int countAlarm;
     private boolean isTestStates;
+    private List<AlarmMember> mAllAlarmId;
+    private AlarmManager mAlarm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +108,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     private void initView(){
         btnChooseExcelPath = findViewById(R.id.btn_choose_file_path);
         btnChooseExcelPath.setOnClickListener(this);
-        btnStopCurrentAlarm = findViewById(R.id.stopCurrentAlarm);
+        btnStopCurrentAlarm = findViewById(R.id.stopAllAlarm);
         btnStopCurrentAlarm.setOnClickListener(this);
         btnStartSetAlarm = findViewById(R.id.startSettingAlarm);
         btnStartSetAlarm.setOnClickListener(this);
@@ -148,10 +151,12 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 
                 chooser.show();
                 break;
-            case R.id.stopCurrentAlarm:
+            case R.id.stopAllAlarm:
                 BellControl.getInstance().stopRing();
+                stopAllAlarm();
                 break;
             case R.id.startSettingAlarm:
+                stopAllAlarm();
                 countAlarm = 0;
                 mHandler.post(mReadExcelFileContentThread);
                 break;
@@ -187,8 +192,9 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         }
     }
 
-
     private synchronized void initStatus(){
+        mAllAlarmId = new ArrayList<AlarmMember>();
+        mAlarm = (AlarmManager) getSystemService(ALARM_SERVICE);
         mThirdCallbackHandler = new ThirdCallbackHandler();
         speakerContentStr = "";
         isContinueSpeaker=false;
@@ -304,6 +310,27 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         }
     }
 
+    private void stopAllAlarm(){
+        if(!mAllAlarmId.isEmpty()) {
+            for (AlarmMember member : mAllAlarmId) {
+                Intent intent = new Intent(TimingAlarmActivity.this, AlarmReceiver.class);
+                Bundle bundle = new Bundle();
+                bundle.putString(Utils.ExcelOnceCellType.TO.contentStr, member.startT);
+                bundle.putString(Utils.ExcelOnceCellType.TL.contentStr, member.continueT);
+                bundle.putString(Utils.ExcelOnceCellType.SC.contentStr, member.screen);
+                bundle.putString(Utils.ExcelOnceCellType.VC.contentStr, member.voice);
+                bundle.putString(Utils.ExcelOnceCellType.RM.contentStr, member.remark);
+                intent.putExtra(Utils.BundleExtraFlag, bundle);
+                intent.setAction(Utils.REMINDERS);
+
+                PendingIntent pi = PendingIntent
+                        .getBroadcast(TimingAlarmActivity.this, member.id, intent, 0);
+                mAlarm.cancel(pi);
+            }
+            mAllAlarmId.clear();
+        }
+    }
+
     private void bindSpeakerService(){
         Intent intent = new Intent(this, SpeakerService.class);
         bindService(intent, mconnection, Service.BIND_AUTO_CREATE);
@@ -320,12 +347,31 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         }
     }
 
+    public class AlarmMember{
+        String startT;
+        String continueT;
+        String screen;
+        String voice;
+        String remark;
+        int id;
+    }
+
     private void addAlarm( String startTime, String continueTime, String screenContent,
                            String voiceContent, String remarkStr, int id){
         LogUtils.e( TAG, "startTime=" + startTime + ",continueTime=" + continueTime
                 + ",screenContent=" + screenContent + ",voiceContent=" + voiceContent
                 + ",remarkStr=" + remarkStr + ",id=" + id );
         if(!startTime.trim().equals("")) {
+
+            AlarmMember alarmMember = new AlarmMember();
+            alarmMember.startT = startTime;
+            alarmMember.continueT = continueTime;
+            alarmMember.screen = screenContent;
+            alarmMember.voice = voiceContent;
+            alarmMember.remark = remarkStr;
+            alarmMember.id = id;
+            mAllAlarmId.add(alarmMember);
+
             Intent intent = new Intent(this, AlarmReceiver.class);
             Bundle bundle = new Bundle();
             bundle.putString(Utils.ExcelOnceCellType.TO.contentStr, startTime);
@@ -335,15 +381,18 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
             bundle.putString(Utils.ExcelOnceCellType.RM.contentStr, remarkStr);
             intent.putExtra(Utils.BundleExtraFlag, bundle);
             intent.setAction(Utils.REMINDERS);
+
             PendingIntent sender = PendingIntent.getBroadcast(this, id, intent, 0);
             String[] startTimeArray = startTime.split(":");
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.HOUR_OF_DAY, Integer.valueOf(startTimeArray[0]));
             calendar.set(Calendar.MINUTE, Integer.valueOf(startTimeArray[1]));
+            calendar.set(Calendar.SECOND, 0);
+            calendar.setTimeZone(TimeZone.getTimeZone("GMT+8"));
 //        calendar.setTimeInMillis(System.currentTimeMillis());//将时间设定为系统目前的时间
 //        calendar.add(Calendar.SECOND, time );//系统时间推迟五秒钟，如果为-5，那么就是比系统时间提前五秒钟
-            AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
-            alarm.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
+//            AlarmManager alarm = (AlarmManager) getSystemService(ALARM_SERVICE);
+            mAlarm.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
             countAlarm++;
         }
     }

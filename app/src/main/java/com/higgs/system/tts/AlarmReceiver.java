@@ -23,8 +23,6 @@ import java.util.Date;
 public class AlarmReceiver extends BroadcastReceiver {
     private static final String TAG = "AlarmReceiver";
     private ExcelRowDataAccept mExcelRowDataAccept;
-    private static String speakerContentStr;
-    private static boolean isContinueSpeaker;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -60,9 +58,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         int currentTotalMin = currentHour * 60 + currentMin;
         int configTotalMin = mExcelRowDataAccept.startTHour * 60 + mExcelRowDataAccept.startTMin;
         int differenceValue = currentTotalMin - configTotalMin;
-        if( differenceValue <= Utils.LateComerConute ){
+        if( differenceValue <= Utils.LateComerConute && differenceValue >= Utils.LowComerTime ){
+            Log.e(TAG, "turn on alarm!");
             return true;
         }else{
+            Log.e(TAG, "turn off alarm!");
             TimingAlarmActivity.mSpeakerServiceBinder.stop();
             TimingAlarmActivity.isContinueSpeaker = false;
             return false;

@@ -35,8 +35,8 @@
       android:layout_weight="1"
       android:layout_height="0dp">
     <Button
-        android:id="@+id/stopCurrentAlarm"
-        android:text="关闭当前闹铃"
+        android:id="@+id/stopAllAlarm"
+        android:text="关闭所有闹铃"
         android:background="@drawable/selector"
         android:textSize="20sp"
         android:layout_margin="3dp"

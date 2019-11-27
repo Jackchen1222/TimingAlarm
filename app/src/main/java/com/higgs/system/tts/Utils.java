@@ -5,7 +5,8 @@ public class Utils {
     public static final String BundleExtraFlag = "onceAlarm";
     public static final String excelFilePath = "excel_file_path";
 
-    public static final int LateComerConute = 10;
+    public static final int LowComerTime = 0;
+    public static final int LateComerConute = 3;
 
     public enum ExcelOnceCellType{
         /** 发起闹铃的当天时间 */
