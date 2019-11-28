@@ -26,6 +26,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Messenger;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -66,6 +67,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
     public static String speakerContentStr;
     public static boolean isContinueSpeaker;
     public static ThirdCallbackHandler mThirdCallbackHandler;
+    public static String screenShowContentStr;
 
     private ServiceConnection mconnection = new ServiceConnection() {
         @Override
@@ -103,6 +105,36 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         setContentView(R.layout.activity_main);
         initView();
         initStatus();
+    }
+
+    public static Handler mainHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if(msg.what == 1001){
+                MessageContent mc = (MessageContent)msg.obj;
+                speakerContentStr = mc.speakContent;
+                isContinueSpeaker = mc.iscontinueSpeaker;
+                screenShowContentStr = mc.screenContent;
+                mSpeakerServiceBinder.speek(speakerContentStr);
+                mvRollScreenContent.setText(screenShowContentStr);
+                mvRollScreenContent.startScroll();
+                mThirdCallbackHandler.sendEmptyMessage(TimingAlarmActivity.OffButton);
+            }
+        }
+    };
+
+    private void screenShowFunction(){
+        LogUtils.e(TAG, "screen=" + screenShowContentStr );
+        mvRollScreenContent.setText(screenShowContentStr);
+        mvRollScreenContent.startScroll();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getpermission();
+        screenShowFunction();
     }
 
     private void initView(){
@@ -197,6 +229,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         mAlarm = (AlarmManager) getSystemService(ALARM_SERVICE);
         mThirdCallbackHandler = new ThirdCallbackHandler();
         speakerContentStr = "";
+        screenShowContentStr = "";
         isContinueSpeaker=false;
         mContext = this;
         isTestStates = false;
@@ -230,7 +263,6 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
         if(mSaveParameter.getEditorValue(Utils.excelFilePath) != null) {
             tvShowExcelPath.setText(mSaveParameter.getEditorValue(Utils.excelFilePath));
         }
-        getpermission();
         bindSpeakerService();
         BellControl.context = this;
     }
@@ -469,7 +501,7 @@ public class TimingAlarmActivity extends Activity implements View.OnClickListene
 
         @Override
         public void speechProgress(String s, int i) {
-
+            LogUtils.e(TAG, "s=" + s + ", i=" + i);
         }
 
         @Override

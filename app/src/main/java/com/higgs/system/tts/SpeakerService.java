@@ -15,6 +15,10 @@ import com.baidu.tts.auth.AuthInfo;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.TtsMode;
 import com.higgs.system.tts.BaiduTtsListener.TtsListener;
+import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.InitListener;
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.util.ResourceUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,6 +52,7 @@ public class SpeakerService extends Service {
         mOperationHandler = new OperationHandler();
         copyAssetFile(TEXT_NAME);
         copyAssetFile(MODEL_NAME);
+        baiduTtsInit();
     }
 
     private void copyAssetFile(String srcFileName){
@@ -155,7 +160,6 @@ public class SpeakerService extends Service {
     public class SpeakerServiceBinder extends Binder{
         public void initListener(TtsListener tl){
             mTtsListener = tl;
-            baiduTtsInit();
         }
 
         public void speek(String content){
@@ -296,6 +300,50 @@ public class SpeakerService extends Service {
 
     private void print(String message) {
         Log.i(TAG, message);
+    }
+
+    /**
+     * ***************************************** 以下是讯飞语音 **********************************************
+     */
+
+    private com.iflytek.cloud.SpeechSynthesizer mTts;
+    private static final String XUNFEI_LOCAL_SPEAKER = "nannan.jet";
+    private static final String UNFEI_LOCAL_SPEAKER_PATH = TEMP_DIR + "/" + XUNFEI_LOCAL_SPEAKER;
+
+
+    private void initXunFeiTts(){
+        mTts = com.iflytek.cloud.SpeechSynthesizer.createSynthesizer(this, new InitListener() {
+            @Override
+            public void onInit(int code) {
+                if (code == ErrorCode.SUCCESS) {
+                    Log.i(TAG , "CreateSynthesizer Success!");
+                }else{
+                    Log.i(TAG , "CreateSynthesizer Failed!");
+                }
+            }
+        });
+        // 清空参数
+        mTts.setParameter(SpeechConstant.PARAMS, null);
+
+        //设置使用本地引擎
+        mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
+        //设置发音人资源路径
+        mTts.setParameter(ResourceUtil.TTS_RES_PATH, UNFEI_LOCAL_SPEAKER_PATH );
+        //设置发音人
+        mTts.setParameter(SpeechConstant.VOICE_NAME, "nannan");
+        // 设置发音语速
+        mTts.setParameter(SpeechConstant.SPEED, "50" );
+        // 设置音调
+        mTts.setParameter(SpeechConstant.PITCH, "50" );
+        // 设置合成音量
+        mTts.setParameter(SpeechConstant.VOLUME, "100");
+        // 设置播放器音频流类型
+        mTts.setParameter(SpeechConstant.STREAM_TYPE, "3");
+        // 设置播放合成音频打断音乐播放，默认为true
+        mTts.setParameter(SpeechConstant.KEY_REQUEST_FOCUS, "true");
+        // 设置音频保存路径，需要申请WRITE_EXTERNAL_STORAGE权限，如不需保存注释该行代码
+        mTts.setParameter(SpeechConstant.AUDIO_FORMAT, "pcm");
+        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, TEMP_DIR + "/iflytek.pcm");
     }
 
 }

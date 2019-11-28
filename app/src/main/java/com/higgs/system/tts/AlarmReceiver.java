@@ -9,6 +9,7 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -37,12 +38,15 @@ public class AlarmReceiver extends BroadcastReceiver {
                 BellControl.getInstance().defaultAlarmMediaPlayer(
                         mExcelRowDataAccept.continueTMin * 60
                                 + mExcelRowDataAccept.continueTSecond);
-                TimingAlarmActivity.isContinueSpeaker = true;
-                TimingAlarmActivity.speakerContentStr = mExcelRowDataAccept.voicePlay;
-                TimingAlarmActivity.mSpeakerServiceBinder.speek(mExcelRowDataAccept.voicePlay);
-                TimingAlarmActivity.mvRollScreenContent.setText(mExcelRowDataAccept.screenShow);
-                TimingAlarmActivity.mvRollScreenContent.startScroll();
-                TimingAlarmActivity.mThirdCallbackHandler.sendEmptyMessage(TimingAlarmActivity.OffButton);
+                Message msg = new Message();
+                MessageContent mc = new MessageContent();
+                mc.iscontinueSpeaker = true;
+                mc.speakContent = mExcelRowDataAccept.voicePlay;
+                mc.screenContent = mExcelRowDataAccept.screenShow;
+                mc.durationTime = mExcelRowDataAccept.continueTMin * 60 + mExcelRowDataAccept.continueTSecond;
+                msg.what = 1001;
+                msg.obj = mc;
+                TimingAlarmActivity.mainHandler.sendMessage(msg);
             }
         }
     }
@@ -63,8 +67,6 @@ public class AlarmReceiver extends BroadcastReceiver {
             return true;
         }else{
             Log.e(TAG, "turn off alarm!");
-            TimingAlarmActivity.mSpeakerServiceBinder.stop();
-            TimingAlarmActivity.isContinueSpeaker = false;
             return false;
         }
     }

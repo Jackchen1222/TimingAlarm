@@ -51,6 +51,10 @@ public class BaiduTtsListener implements SpeechSynthesizerListener {
     public void onSpeechFinish(String s) {
         if(listener != null){
             listener.speechFinish(s);
+        }else{
+            if(TimingAlarmActivity.isContinueSpeaker){
+                TimingAlarmActivity.mSpeakerServiceBinder.speek(TimingAlarmActivity.speakerContentStr);
+            }
         }
     }
 

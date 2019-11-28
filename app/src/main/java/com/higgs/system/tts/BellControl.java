@@ -59,6 +59,8 @@ public class BellControl {
         @Override
         public void run() {
             stopRing();
+            TimingAlarmActivity.mSpeakerServiceBinder.stop();
+            TimingAlarmActivity.isContinueSpeaker = false;
         }
     }
 
